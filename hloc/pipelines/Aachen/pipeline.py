@@ -1,6 +1,8 @@
+import os
 from pathlib import Path
 from pprint import pformat
 import argparse
+import yaml
 
 from hloc import extract_features, match_features
 from hloc import pairs_from_covisibility, pairs_from_retrieval
@@ -10,7 +12,7 @@ from hloc import colmap_from_nvm, triangulation, localize_sfm, visualization
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=Path, default='/media/zafirshi/software/Datasets/Aachen/',
                     help='Path to the dataset, default: %(default)s')
-parser.add_argument('--outputs', type=Path, default='outputs/aachen_zpp_viz_match_compare',
+parser.add_argument('--outputs', type=Path, default='outputs/aachen_zpp_pipeline_debug',
                     help='Path to the output directory, default: %(default)s')
 parser.add_argument('--num_covis', type=int, default=20,
                     help='Number of image pairs for SfM, default: %(default)s')
@@ -43,6 +45,17 @@ print(f'Configs for feature matchers:\n{pformat(match_features.confs)}')
 retrieval_conf = extract_features.confs[args.retrieval_conf]
 feature_conf = extract_features.confs[args.feature_conf]
 matcher_conf = match_features.confs[args.matcher_conf]
+
+# save configs in yaml file
+cfgs = {
+    'Extractor:' + args.feature_conf: feature_conf,
+    'Matcher:' + args.matcher_conf: matcher_conf,
+    'Retrieval:' + args.retrieval_conf: retrieval_conf
+}
+cfgs_path = Path('configs/' + outputs.stem)
+os.makedirs(cfgs_path, exist_ok=True)
+with open(Path(cfgs_path / 'config.yml'), 'w') as yaml_file:
+    yaml.dump(cfgs, yaml_file, default_flow_style=False)
 
 features = extract_features.main(feature_conf, images, outputs)
 
