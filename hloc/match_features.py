@@ -1,4 +1,5 @@
 import argparse
+import os
 from typing import Union, Optional, Dict, List, Tuple
 from pathlib import Path
 import pprint
@@ -65,7 +66,23 @@ confs = {
         'model': {
             'name': 'adalam'
         },
-    }
+    },
+    # Add new matcher
+    'zippypoint-matcher': {
+        'output': 'matches-zpp',
+        'model': {
+            'name': 'zpp_matcher',
+            'do_mutual_check': True,
+            'ratio_threshold': 0.95,
+        },
+    },
+    'zippypoint-matcher_wothd': {
+        'output': 'matches-zpp',
+        'model': {
+            'name': 'zpp_matcher',
+            'do_mutual_check': True,
+        },
+    },
 }
 
 
@@ -107,7 +124,7 @@ class FeaturePairsDataset(torch.utils.data.Dataset):
         with h5py.File(self.feature_path_q, 'r') as fd:
             grp = fd[name0]
             for k, v in grp.items():
-                data[k+'0'] = torch.from_numpy(v.__array__()).float()
+                data[k + '0'] = torch.from_numpy(v.__array__()).float()
             # some matchers might expect an image but only use its size
             data['image0'] = torch.empty((1,)+tuple(grp['image_size'])[::-1])
         with h5py.File(self.feature_path_r, 'r') as fd:
@@ -140,7 +157,6 @@ def main(conf: Dict,
          matches: Optional[Path] = None,
          features_ref: Optional[Path] = None,
          overwrite: bool = False) -> Path:
-
     if isinstance(features, Path) or Path(features).exists():
         features_q = features
         if matches is None:
@@ -150,7 +166,7 @@ def main(conf: Dict,
         if export_dir is None:
             raise ValueError('Provide an export_dir if features is not'
                              f' a file path: {features}.')
-        features_q = Path(export_dir, features+'.h5')
+        features_q = Path(export_dir, features + '.h5')
         if matches is None:
             matches = Path(
                 export_dir, f'{features}_{conf["output"]}_{pairs.stem}.h5')

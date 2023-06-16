@@ -1,7 +1,7 @@
 import argparse
 import torch
 from pathlib import Path
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Union, Optional, Tuple
 import h5py
 from types import SimpleNamespace
 import cv2
@@ -115,6 +115,35 @@ confs = {
         'preprocessing': {
             'grayscale': False,
             'resize_max': 1600,
+        },
+    },
+    # new added local descriptors
+    'zippypoint_aachen': {
+        'output': 'feats-zippypoint-n4096-r640',
+        'model': {
+            'name': 'zippypoint',
+            'nms_radius': 3,
+            'keypoint_threshold': 0.0001,
+            'max_keypoints': -1,
+            'max_resize': 640,  # 1024, 768
+        },
+        'resize_up': True,
+        'preprocessing': {
+            'grayscale': False,
+        },
+    },
+    'zippypoint_aachen_n4096_r1024': {
+        'output': 'feats-zippypoint-n4096-r640',
+        'model': {
+            'name': 'zippypoint',
+            'nms_radius': 3,
+            'keypoint_threshold': 0.0001,
+            'max_keypoints': 4096,
+            'max_resize': 1024,  # 1024, 768
+        },
+        'resize_up': True,
+        'preprocessing': {
+            'grayscale': False,
         },
     },
     # Global descriptors
@@ -252,6 +281,7 @@ def main(conf: Dict,
         return feature_path
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # Note: Add extractor model here
     Model = dynamic_load(extractors, conf['model']['name'])
     model = Model(conf['model']).eval().to(device)
 
@@ -262,16 +292,25 @@ def main(conf: Dict,
         pred = model({'image': data['image'].to(device, non_blocking=True)})
         pred = {k: v[0].cpu().numpy() for k, v in pred.items()}
 
-        pred['image_size'] = original_size = data['original_size'][0].numpy()
+        pred['image_size'] = original_size = data['original_size'][0].numpy()  # WxH
         if 'keypoints' in pred:
-            size = np.array(data['image'].shape[-2:][::-1])
+            # if-condition to choose whether use hloc pre-process resize
+            # Note: in conf should omit resize_max key, instead set resize_up key
+            if 'resize_up' in conf and conf['resize_up']:
+                resize_factor = conf['model']['max_resize'] / max(original_size)
+                _w, _h = original_size
+                size = np.array([int(round(_w * resize_factor)), int(round(_h * resize_factor))])  # WxH
+            else:
+                size = np.array(data['image'].shape[-2:][::-1])  # WxH
             scales = (original_size / size).astype(np.float32)
+            # TODO: check how this +/- 0.5 whether matter
             pred['keypoints'] = (pred['keypoints'] + .5) * scales[None] - .5
             if 'scales' in pred:
                 pred['scales'] *= scales.mean()
             # add keypoint uncertainties scaled to the original resolution
             uncertainty = getattr(model, 'detection_noise', 1) * scales.mean()
 
+        # Note: save storage: half pred[k] from float32 -> float16
         if as_half:
             for k in pred:
                 dt = pred[k].dtype
