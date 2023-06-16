@@ -14,6 +14,9 @@ from . import matchers, logger
 from .utils.base_model import dynamic_load
 from .utils.parsers import names_to_pair, names_to_pair_old, parse_retrieval
 
+from .utils.viz import make_matching_plot_fast
+from .utils.io import read_image
+import cv2
 
 '''
 A set of standard configurations that can be directly selected from the command
@@ -113,10 +116,11 @@ class WorkQueue():
 
 
 class FeaturePairsDataset(torch.utils.data.Dataset):
-    def __init__(self, pairs, feature_path_q, feature_path_r):
+    def __init__(self, pairs, feature_path_q, feature_path_r, image_dir):
         self.pairs = pairs
         self.feature_path_q = feature_path_q
         self.feature_path_r = feature_path_r
+        self.image_dir = image_dir
 
     def __getitem__(self, idx):
         name0, name1 = self.pairs[idx]
@@ -126,12 +130,16 @@ class FeaturePairsDataset(torch.utils.data.Dataset):
             for k, v in grp.items():
                 data[k + '0'] = torch.from_numpy(v.__array__()).float()
             # some matchers might expect an image but only use its size
-            data['image0'] = torch.empty((1,)+tuple(grp['image_size'])[::-1])
+            data['image0'] = torch.empty((1,) + tuple(grp['image_size'])[::-1])
+        data['name0'] = Path(name0).stem
+        data['image_path0'] = str(Path(self.image_dir, name0))
         with h5py.File(self.feature_path_r, 'r') as fd:
             grp = fd[name1]
             for k, v in grp.items():
-                data[k+'1'] = torch.from_numpy(v.__array__()).float()
-            data['image1'] = torch.empty((1,)+tuple(grp['image_size'])[::-1])
+                data[k + '1'] = torch.from_numpy(v.__array__()).float()
+            data['image1'] = torch.empty((1,) + tuple(grp['image_size'])[::-1])
+        data['name1'] = Path(name1).stem
+        data['image_path1'] = str(Path(self.image_dir, name1))
         return data
 
     def __len__(self):
@@ -156,6 +164,7 @@ def main(conf: Dict,
          export_dir: Optional[Path] = None,
          matches: Optional[Path] = None,
          features_ref: Optional[Path] = None,
+         image_dir: Optional[Path] = None,
          overwrite: bool = False) -> Path:
     if isinstance(features, Path) or Path(features).exists():
         features_q = features
@@ -173,7 +182,7 @@ def main(conf: Dict,
 
     if features_ref is None:
         features_ref = features_q
-    match_from_paths(conf, pairs, matches, features_q, features_ref, overwrite)
+    match_from_paths(conf, pairs, matches, features_q, features_ref, image_dir, overwrite)
 
     return matches
 
@@ -199,12 +208,64 @@ def find_unique_new_pairs(pairs_all: List[Tuple[str]], match_path: Path = None):
     return pairs
 
 
+def debug_viz(pred, data, output_dir=None):
+    """
+    data keys:
+    'descriptors0', 'image_size0', 'keypoints0', 'scores0', 'image0', 'name0',
+    'descriptors1', 'image_size1', 'keypoints1', 'scores1', 'image1', 'name1'
+    pred keys:
+    'matches0', 'matching_scores0'
+    """
+    kpts0 = data['keypoints0'][0].cpu().numpy()
+    kpts1 = data['keypoints1'][0].cpu().numpy()
+    matches = pred['matches0'][0].cpu().numpy()
+
+    valid = matches > -1
+    mkpts0 = kpts0[valid]
+    mkpts1 = kpts1[matches[valid]]
+
+    text = [
+        'Hloc',
+        'Keypoints: {} - {}'.format(len(kpts0), len(kpts1)),
+        'Matches: {}'.format(len(mkpts0))
+    ]
+    print(text)
+
+    small_text = [
+        'Image Pair: {} - {}'.format(data['name0'][0], data['name1'][0]),
+    ]
+
+    # todo: check image_path0 should be string
+    image_path0 = data['image_path0'][0]
+    image_path1 = data['image_path1'][0]
+
+    # load_image
+    image0 = read_image(image_path0, grayscale=False)  # np.array(H, W, 3)
+    image1 = read_image(image_path1, grayscale=False)  # np.array(H, W, 3)
+
+    # Note: data['image'] read from .h5 file is actually not the original image just a size()
+    # See: FeaturePairsDataset:__getitem__()
+    out = make_matching_plot_fast(
+        image0, image1, kpts0, kpts1, mkpts0, mkpts1,
+        text,
+        path=None, show_keypoints=True, small_text=small_text)
+
+    if output_dir is not None:
+        stem = 'matches_{}_{}'.format(data['name0'][0], data['name1'][0])
+        out_file = str(Path(output_dir / 'viz_pairs', stem + '.png'))
+        os.makedirs(Path(output_dir / 'viz_pairs'), exist_ok=True)
+        print('\nWriting image to {}'.format(out_file))
+        out = out[:, :, ::-1]  # RGB to BGR for imwrite to save
+        cv2.imwrite(out_file, out)
+
+
 @torch.no_grad()
 def match_from_paths(conf: Dict,
                      pairs_path: Path,
                      match_path: Path,
                      feature_path_q: Path,
                      feature_path_ref: Path,
+                     image_dir: Path,
                      overwrite: bool = False) -> Path:
     logger.info('Matching local features with configuration:'
                 f'\n{pprint.pformat(conf)}')
@@ -227,15 +288,17 @@ def match_from_paths(conf: Dict,
     Model = dynamic_load(matchers, conf['model']['name'])
     model = Model(conf['model']).eval().to(device)
 
-    dataset = FeaturePairsDataset(pairs, feature_path_q, feature_path_ref)
+    dataset = FeaturePairsDataset(pairs, feature_path_q, feature_path_ref, image_dir)
     loader = torch.utils.data.DataLoader(
         dataset, num_workers=5, batch_size=1, shuffle=False, pin_memory=True)
     writer_queue = WorkQueue(partial(writer_fn, match_path=match_path), 5)
 
     for idx, data in enumerate(tqdm(loader, smoothing=.1)):
-        data = {k: v if k.startswith('image')
+        data = {k: v if k.startswith('image') or k.startswith('name') or k.startswith('image_path')
                 else v.to(device, non_blocking=True) for k, v in data.items()}
         pred = model(data)
+        # add match pair visual
+        # debug_viz(pred, data, output_dir=Path(pairs_path).parent)
         pair = names_to_pair(*pairs[idx])
         writer_queue.put((pair, pred))
     writer_queue.join()

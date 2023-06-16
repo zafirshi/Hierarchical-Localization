@@ -55,7 +55,7 @@ pairs_from_covisibility.main(
     sift_sfm, sfm_pairs, num_matched=args.num_covis)
 
 sfm_matches = match_features.main(
-    matcher_conf, sfm_pairs, feature_conf['output'], outputs)
+    matcher_conf, sfm_pairs, feature_conf['output'], outputs, image_dir=images)
 
 triangulation.main(
     reference_sfm,
@@ -71,7 +71,7 @@ pairs_from_retrieval.main(
     global_descriptors, loc_pairs, args.num_loc,
     query_prefix='query', db_model=reference_sfm)
 loc_matches = match_features.main(
-    matcher_conf, loc_pairs, feature_conf['output'], outputs)
+    matcher_conf, loc_pairs, feature_conf['output'], outputs, image_dir=images)
 
 localize_sfm.main(
     reference_sfm,
