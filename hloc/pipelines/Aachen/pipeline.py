@@ -2,20 +2,26 @@ from pathlib import Path
 from pprint import pformat
 import argparse
 
-from ... import extract_features, match_features
-from ... import pairs_from_covisibility, pairs_from_retrieval
-from ... import colmap_from_nvm, triangulation, localize_sfm
+from hloc import extract_features, match_features
+from hloc import pairs_from_covisibility, pairs_from_retrieval
+from hloc import colmap_from_nvm, triangulation, localize_sfm, visualization
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=Path, default='datasets/aachen',
+parser.add_argument('--dataset', type=Path, default='/media/zafirshi/software/Datasets/Aachen/',
                     help='Path to the dataset, default: %(default)s')
-parser.add_argument('--outputs', type=Path, default='outputs/aachen',
+parser.add_argument('--outputs', type=Path, default='outputs/aachen_zpp_viz_match_compare',
                     help='Path to the output directory, default: %(default)s')
 parser.add_argument('--num_covis', type=int, default=20,
                     help='Number of image pairs for SfM, default: %(default)s')
 parser.add_argument('--num_loc', type=int, default=50,
                     help='Number of image pairs for loc, default: %(default)s')
+parser.add_argument('--feature_conf', type=str, default='zippypoint_aachen',  # silk_aachen | superpoint_aachen | zippypoint_aachen
+                    help="Local feature extractor which completed in extract_features' confs dict")
+parser.add_argument('--retrieval_conf', type=str, default='netvlad',
+                    help="Retrival Method completed in extract_features' confs dict")
+parser.add_argument('--matcher_conf', type=str, default='zippypoint-matcher',
+                    help="Matcher completed in match_features' confs dict")
 args = parser.parse_args()
 
 # Setup the paths
@@ -24,19 +30,19 @@ images = dataset / 'images/images_upright/'
 
 outputs = args.outputs  # where everything will be saved
 sift_sfm = outputs / 'sfm_sift'  # from which we extract the reference poses
-reference_sfm = outputs / 'sfm_superpoint+superglue'  # the SfM model we will build
+reference_sfm = outputs / f'sfm_{args.feature_conf}+{args.matcher_conf}'  # the SfM model we will build
 sfm_pairs = outputs / f'pairs-db-covis{args.num_covis}.txt'  # top-k most covisible in SIFT model
-loc_pairs = outputs / f'pairs-query-netvlad{args.num_loc}.txt'  # top-k retrieved by NetVLAD
-results = outputs / f'Aachen_hloc_superpoint+superglue_netvlad{args.num_loc}.txt'
+loc_pairs = outputs / f'pairs-query-{args.retrieval_conf}{args.num_loc}.txt'  # top-k retrieved by Netvlad
+results = outputs / f'Aachen_hloc_{args.feature_conf}+{args.matcher_conf}_{args.retrieval_conf}{args.num_loc}.txt'
 
 # list the standard configurations available
 print(f'Configs for feature extractors:\n{pformat(extract_features.confs)}')
 print(f'Configs for feature matchers:\n{pformat(match_features.confs)}')
 
 # pick one of the configurations for extraction and matching
-retrieval_conf = extract_features.confs['netvlad']
-feature_conf = extract_features.confs['superpoint_aachen']
-matcher_conf = match_features.confs['superglue']
+retrieval_conf = extract_features.confs[args.retrieval_conf]
+feature_conf = extract_features.confs[args.feature_conf]
+matcher_conf = match_features.confs[args.matcher_conf]
 
 features = extract_features.main(feature_conf, images, outputs)
 
@@ -47,6 +53,7 @@ colmap_from_nvm.main(
     sift_sfm)
 pairs_from_covisibility.main(
     sift_sfm, sfm_pairs, num_matched=args.num_covis)
+
 sfm_matches = match_features.main(
     matcher_conf, sfm_pairs, feature_conf['output'], outputs)
 
@@ -56,7 +63,8 @@ triangulation.main(
     images,
     sfm_pairs,
     features,
-    sfm_matches)
+    sfm_matches,
+    skip_geometric_verification=True)
 
 global_descriptors = extract_features.main(retrieval_conf, images, outputs)
 pairs_from_retrieval.main(
