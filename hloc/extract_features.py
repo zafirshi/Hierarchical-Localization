@@ -1,4 +1,6 @@
 import argparse
+import os
+
 import torch
 from pathlib import Path
 from typing import Dict, List, Union, Optional, Tuple
@@ -15,6 +17,9 @@ from . import extractors, logger
 from .utils.base_model import dynamic_load
 from .utils.parsers import parse_image_lists
 from .utils.io import read_image, list_h5_names
+
+from .utils.viz import plot_keypoints, plot_images, save_plot
+import matplotlib.pyplot as plt
 
 '''
 A set of standard configurations that can be directly selected from the command
@@ -258,6 +263,22 @@ class ImageDataset(torch.utils.data.Dataset):
         return len(self.names)
 
 
+def debug_viz(image_dir, image_name, keypoints,
+              save_dir: Path,
+              dpi=75):
+    # Note: comment one now is used built_in interface, uncomment one is Self-implemented method
+    plt.imshow(read_image(image_dir / image_name))
+    # plot_images([read_image(image_dir / image_name)], dpi=dpi)
+
+    plt.scatter(keypoints[:, 0], keypoints[:, 1], c='red', s=4, linewidths=0)
+    # plot_keypoints([keypoints], colors='red', ps=4)
+
+    # os.makedirs(save_dir / 'db', exist_ok=True)
+    plt.savefig(save_dir / image_name, bbox_inches='tight', pad_inches=0)
+    plt.close()
+    # save_plot(save_dir / image_name)
+
+
 @torch.no_grad()
 def main(conf: Dict,
          image_dir: Path,
@@ -305,6 +326,10 @@ def main(conf: Dict,
             scales = (original_size / size).astype(np.float32)
             # TODO: check how this +/- 0.5 whether matter
             pred['keypoints'] = (pred['keypoints'] + .5) * scales[None] - .5
+
+            # ADD visual to look point location
+            # debug_viz(image_dir, name, pred['keypoints'], save_dir=export_dir / 'viz')
+
             if 'scales' in pred:
                 pred['scales'] *= scales.mean()
             # add keypoint uncertainties scaled to the original resolution
