@@ -16,7 +16,6 @@ from .utils.base_model import dynamic_load
 from .utils.parsers import parse_image_lists
 from .utils.io import read_image, list_h5_names
 
-
 '''
 A set of standard configurations that can be directly selected from the command
 line using their name. Each is a dictionary with the following entries:
@@ -138,13 +137,19 @@ confs = {
         'output': 'global-feats-cosplace',
         'model': {'name': 'cosplace'},
         'preprocessing': {'resize_max': 1024},
-    }
+    },
+    # Add mixvpr
+    'mixvpr': {
+        'output': 'global-feats-mixvpr',
+        'model': {'name': 'mixvpr'},
+        'preprocessing': {'resize_max': 1024},
+    },
 }
 
 
 def resize_image(image, size, interp):
     if interp.startswith('cv2_'):
-        interp = getattr(cv2, 'INTER_'+interp[len('cv2_'):].upper())
+        interp = getattr(cv2, 'INTER_' + interp[len('cv2_'):].upper())
         h, w = image.shape[:2]
         if interp == cv2.INTER_AREA and (w < size[0] or h < size[1]):
             interp = cv2.INTER_LINEAR
@@ -176,7 +181,7 @@ class ImageDataset(torch.utils.data.Dataset):
         if paths is None:
             paths = []
             for g in conf.globs:
-                paths += list(Path(root).glob('**/'+g))
+                paths += list(Path(root).glob('**/' + g))
             if len(paths) == 0:
                 raise ValueError(f'Could not find any image in root: {root}.')
             paths = sorted(list(set(paths)))
@@ -205,7 +210,7 @@ class ImageDataset(torch.utils.data.Dataset):
         if self.conf.resize_max and (self.conf.resize_force
                                      or max(size) > self.conf.resize_max):
             scale = self.conf.resize_max / max(size)
-            size_new = tuple(int(round(x*scale)) for x in size)
+            size_new = tuple(int(round(x * scale)) for x in size)
             image = resize_image(image, size_new, self.conf.interpolation)
 
         if self.conf.grayscale:
@@ -237,7 +242,7 @@ def main(conf: Dict,
 
     dataset = ImageDataset(image_dir, conf['preprocessing'], image_list)
     if feature_path is None:
-        feature_path = Path(export_dir, conf['output']+'.h5')
+        feature_path = Path(export_dir, conf['output'] + '.h5')
     feature_path.parent.mkdir(exist_ok=True, parents=True)
     skip_names = set(list_h5_names(feature_path)
                      if feature_path.exists() and not overwrite else ())

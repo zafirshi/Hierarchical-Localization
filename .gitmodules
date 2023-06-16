@@ -16,3 +16,6 @@
 [submodule "third_party/ZippyPoint"]
 	path = third_party/ZippyPoint
 	url = https://github.com/menelaoskanakis/ZippyPoint.git
+[submodule "third_party/MixVPR"]
+	path = third_party/MixVPR
+	url = https://github.com/amaralibey/MixVPR.git

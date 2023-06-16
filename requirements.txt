@@ -12,3 +12,13 @@ kornia>=0.6.7
 gdown
 larq
 tensorflow==2.10.*
+faiss-cpu==1.7.2
+pandas==1.5.1
+Pillow==9.2.0
+prettytable==3.5.0
+pytorch-lightning==1.8.3
+pytorch-metric-learning==1.6.3
+scikit-learn==1.2.1
+tensorboard==2.11.0
+timm==0.6.12
+torchmetrics==0.11.1
