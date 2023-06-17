@@ -129,7 +129,7 @@ confs = {
             'name': 'zippypoint',
             'nms_radius': 3,
             'keypoint_threshold': 0.0001,
-            'max_keypoints': -1,
+            'max_keypoints': 4096,
             'max_resize': 640,  # 1024, 768
         },
         'resize_up': True,
