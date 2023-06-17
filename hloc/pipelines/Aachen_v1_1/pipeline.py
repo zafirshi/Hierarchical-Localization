@@ -23,6 +23,8 @@ parser.add_argument('--retrieval_conf', type=str, default='netvlad',
                     help="Retrival Method completed in extract_features' confs dict")
 parser.add_argument('--matcher_conf', type=str, default='zippypoint-matcher',
                     help="Matcher completed in match_features' confs dict")
+parser.add_argument('--skip_geometric_verification', type=bool, default=False,
+                    help="whether skip_geometric_verification when triangulation(skip would be fast but inaccurate)")
 args = parser.parse_args()
 
 # Setup the paths
@@ -69,7 +71,7 @@ triangulation.main(
     sfm_pairs,
     features,
     sfm_matches,
-    skip_geometric_verification=True,
+    skip_geometric_verification=args.skip_geometric_verification,
 )
 
 global_descriptors = extract_features.main(retrieval_conf, images, outputs)
