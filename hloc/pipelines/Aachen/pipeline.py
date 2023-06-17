@@ -8,7 +8,6 @@ from hloc import extract_features, match_features
 from hloc import pairs_from_covisibility, pairs_from_retrieval
 from hloc import colmap_from_nvm, triangulation, localize_sfm, visualization
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=Path, default='/media/zafirshi/software/Datasets/Aachen/',
                     help='Path to the dataset, default: %(default)s')
@@ -18,7 +17,8 @@ parser.add_argument('--num_covis', type=int, default=20,
                     help='Number of image pairs for SfM, default: %(default)s')
 parser.add_argument('--num_loc', type=int, default=50,
                     help='Number of image pairs for loc, default: %(default)s')
-parser.add_argument('--feature_conf', type=str, default='zippypoint_aachen',  # silk_aachen | superpoint_aachen | zippypoint_aachen
+parser.add_argument('--feature_conf', type=str, default='zippypoint_aachen',
+                    # silk_aachen | superpoint_aachen | zippypoint_aachen
                     help="Local feature extractor which completed in extract_features' confs dict")
 parser.add_argument('--retrieval_conf', type=str, default='netvlad',
                     help="Retrival Method completed in extract_features' confs dict")
@@ -52,9 +52,8 @@ cfgs = {
     'Matcher:' + args.matcher_conf: matcher_conf,
     'Retrieval:' + args.retrieval_conf: retrieval_conf
 }
-cfgs_path = Path('configs/' + outputs.stem)
-os.makedirs(cfgs_path, exist_ok=True)
-with open(Path(cfgs_path / 'config.yml'), 'w') as yaml_file:
+os.makedirs(outputs, exist_ok=True)
+with open(Path(outputs / 'config.yml'), 'w') as yaml_file:
     yaml.dump(cfgs, yaml_file, default_flow_style=False)
 
 features = extract_features.main(feature_conf, images, outputs)
