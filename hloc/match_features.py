@@ -79,6 +79,15 @@ confs = {
             'ratio_threshold': 0.95,
         },
     },
+    # refine config
+    'zippypoint-matcher.9': {
+        'output': 'matches-zpp',
+        'model': {
+            'name': 'zpp_matcher',
+            'do_mutual_check': True,
+            'ratio_threshold': 0.9,
+        },
+    },
     'zippypoint-matcher_wothd': {
         'output': 'matches-zpp',
         'model': {
