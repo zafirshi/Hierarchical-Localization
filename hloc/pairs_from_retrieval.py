@@ -16,7 +16,9 @@ def parse_names(prefix, names, names_all):
     if prefix is not None:
         if not isinstance(prefix, str):
             prefix = tuple(prefix)
-        names = [n for n in names_all if n.startswith(prefix)]
+        # Change only for QinChunRoad Datasets for inconsistent data structure
+        names = [n for n in names_all if prefix in n]
+        # names = [n for n in names_all if n.startswith(prefix)]
         if len(names) == 0:
             raise ValueError(
                 f'Could not find any image with the prefix `{prefix}`.')
