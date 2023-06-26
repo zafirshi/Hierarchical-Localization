@@ -125,7 +125,7 @@ class WorkQueue():
 
 
 class FeaturePairsDataset(torch.utils.data.Dataset):
-    def __init__(self, pairs, feature_path_q, feature_path_r, image_dir):
+    def __init__(self, pairs, feature_path_q, feature_path_r, image_dir=None):
         self.pairs = pairs
         self.feature_path_q = feature_path_q
         self.feature_path_r = feature_path_r
@@ -135,20 +135,26 @@ class FeaturePairsDataset(torch.utils.data.Dataset):
         name0, name1 = self.pairs[idx]
         data = {}
         with h5py.File(self.feature_path_q, 'r') as fd:
-            grp = fd[name0]
-            for k, v in grp.items():
-                data[k + '0'] = torch.from_numpy(v.__array__()).float()
-            # some matchers might expect an image but only use its size
-            data['image0'] = torch.empty((1,) + tuple(grp['image_size'])[::-1])
+            try:
+                grp = fd[name0]
+            except:
+                print(f'==========> name0:{name0} happen error!')
+            else:
+                for k, v in grp.items():
+                    data[k + '0'] = torch.from_numpy(v.__array__()).float()
+                # some matchers might expect an image but only use its size
+                data['image0'] = torch.empty((1,) + tuple(grp['image_size'])[::-1])
         data['name0'] = Path(name0).stem
-        data['image_path0'] = str(Path(self.image_dir, name0))
+        if self.image_dir:
+            data['image_path0'] = str(Path(self.image_dir, name0))
         with h5py.File(self.feature_path_r, 'r') as fd:
             grp = fd[name1]
             for k, v in grp.items():
                 data[k + '1'] = torch.from_numpy(v.__array__()).float()
             data['image1'] = torch.empty((1,) + tuple(grp['image_size'])[::-1])
         data['name1'] = Path(name1).stem
-        data['image_path1'] = str(Path(self.image_dir, name1))
+        if self.image_dir:
+            data['image_path1'] = str(Path(self.image_dir, name1))
         return data
 
     def __len__(self):
