@@ -210,7 +210,7 @@ def main(reference_sfm: Union[Path, pycolmap.Reconstruction],
             qvec, tvec = poses[q]
             qvec = ' '.join(map(str, qvec))
             tvec = ' '.join(map(str, tvec))
-            name = q.split('/')[-1]
+            name = q.split('/')[-1] if 'ezxr' not in q else q
             if prepend_camera_name:
                 name = q.split('/')[-2] + '/' + name
             f.write(f'{name} {qvec} {tvec}\n')
