@@ -4,13 +4,13 @@ from pprint import pformat
 import argparse
 import yaml
 
-from ... import extract_features, match_features, triangulation
-from ... import pairs_from_covisibility, pairs_from_retrieval, localize_sfm
+from hloc import extract_features, match_features, triangulation
+from hloc import pairs_from_covisibility, pairs_from_retrieval, localize_sfm
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=Path, default='datasets/chunxiroad',
+parser.add_argument('--dataset', type=Path, default='/media/zafirshi/software/Code/myhloc/datasets/chunxiroad',
                     help='Path to the dataset, default: %(default)s')
-parser.add_argument('--outputs', type=Path, default='outputs/chunxiroad',
+parser.add_argument('--outputs', type=Path, default='outputs/chunxiroad-debug',
                     help='Path to the output directory, default: %(default)s')
 parser.add_argument('--num_covis', type=int, default=20,
                     help='Number of image pairs for SfM, default: %(default)s')
@@ -28,8 +28,8 @@ args = parser.parse_args()
 
 # Setup the paths
 dataset = args.dataset
-images = dataset / 'images/'
-sift_sfm = dataset / 'sfm_sift/'
+images = dataset / 'images_original/'
+sift_sfm = dataset / 'colmap_model/'
 
 outputs = args.outputs  # where everything will be saved
 reference_sfm = outputs / f'sfm_{args.feature_conf}+{args.matcher_conf}'  # the SfM model we will build
@@ -61,7 +61,7 @@ features = extract_features.main(feature_conf, images, outputs)
 pairs_from_covisibility.main(
     sift_sfm, sfm_pairs, num_matched=args.num_covis)
 sfm_matches = match_features.main(
-    matcher_conf, sfm_pairs, feature_conf['output'], outputs, image_dir=images)
+    matcher_conf, sfm_pairs, feature_conf['output'], outputs)
 
 triangulation.main(
     reference_sfm,
@@ -76,13 +76,13 @@ triangulation.main(
 global_descriptors = extract_features.main(retrieval_conf, images, outputs)
 pairs_from_retrieval.main(
     global_descriptors, loc_pairs, args.num_loc,
-    query_prefix='query', db_model=reference_sfm)
+    query_prefix='test', db_model=reference_sfm)
 loc_matches = match_features.main(
-    matcher_conf, loc_pairs, feature_conf['output'], outputs, image_dir=images)
+    matcher_conf, loc_pairs, feature_conf['output'], outputs)
 
 localize_sfm.main(
     reference_sfm,
-    dataset / 'queries/*_time_queries_with_intrinsics.txt',
+    dataset / 'queries_with_intrinsics.txt',
     loc_pairs,
     features,
     loc_matches,
