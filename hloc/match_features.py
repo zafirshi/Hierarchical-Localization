@@ -41,6 +41,20 @@ confs = {
             'sinkhorn_iterations': 5,
         },
     },
+    'ot': {
+        'output': 'matches-ot',
+        'model': {
+            'name': 'optimal_transport',
+            'sinkhorn_iterations': 50,
+        },
+    },
+    'ot-fast': {
+        'output': 'matches-ot-it5',
+        'model': {
+            'name': 'optimal_transport',
+            'sinkhorn_iterations': 5,
+        },
+    },
     'NN-superpoint': {
         'output': 'matches-NN-mutual-dist.7',
         'model': {
