@@ -123,6 +123,23 @@ confs = {
         },
     },
     # new added local descriptors
+    'silk_aachen': {
+        'output': 'feats-silk-n10000-r640',
+        'model': {
+            'name': 'silk',
+            'nms_radius': 0,
+            'silk_top_k': 10000,
+            'default_outputs': (  # outputs required when running the model
+                "sparse_positions",
+                "sparse_descriptors"
+            )
+        },
+        'preprocessing': {
+            'grayscale': True,
+            'resize_max': 640,
+        },
+    },
+    # new added local descriptors
     'zippypoint_aachen': {
         'output': 'feats-zippypoint-n4096-r640',
         'model': {
