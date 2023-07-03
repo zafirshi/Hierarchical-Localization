@@ -1,241 +1,99 @@
-# hloc - the hierarchical localization toolbox
+<div align="center"> 
 
-This is `hloc`, a modular toolbox for state-of-the-art 6-DoF visual localization. It implements [Hierarchical Localization](https://arxiv.org/abs/1812.03506), leveraging image retrieval and feature matching, and is fast, accurate, and scalable. This codebase won the indoor/outdoor localization challenges at [CVPR 2020](https://sites.google.com/view/vislocslamcvpr2020/home) and [ECCV 2020](https://sites.google.com/view/ltvl2020/), in combination with [SuperGlue](https://psarlin.com/superglue/), our graph neural network for feature matching.
+## Custom Hloc with Zippypoint, SiLK and HF-net interface
 
-With `hloc`, you can:
-
-- Reproduce [our CVPR 2020 winning results](https://www.visuallocalization.net/workshop/cvpr/2020/) on outdoor (Aachen) and indoor (InLoc) datasets
-- Run Structure-from-Motion with SuperPoint+SuperGlue to localize with your own datasets
-- Evaluate your own local features or image retrieval for visual localization
-- Implement new localization pipelines and debug them easily 🔥
+</div>
 
 <p align="center">
-  <a href="https://arxiv.org/abs/1812.03506"><img src="doc/hloc.png" width="60%"/></a>
-  <br /><em>Hierachical Localization uses both image retrieval and feature matching</em>
+  Ze&nbsp;Shi*</a> <b>&middot;</b>
+  Zhiguo&nbsp;Chen</a> <b>&middot;</b>
+  Yang&nbsp;He</a> <b>&middot;</b>
+  Chen&nbsp;Wang</a> <b></b>
 </p>
-
-##
-
-## Quick start ➡️ [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1MrVs9b8aQYODtOGkoaGNF9Nji3sbCNMQ)
-
-Build 3D maps with Structure-from-Motion and localize any Internet image right from your browser! **You can now run `hloc` and COLMAP in Google Colab with GPU for free.** The notebook [`demo.ipynb`](https://colab.research.google.com/drive/1MrVs9b8aQYODtOGkoaGNF9Nji3sbCNMQ) shows how to run SfM and localization in just a few steps. Try it with your own data and let us know!
-
-## Installation
-
-`hloc` requires Python >=3.7 and PyTorch >=1.1. Installing the package locally pulls the other dependencies:
-
-```bash
-git clone --recursive https://github.com/cvg/Hierarchical-Localization/
-cd Hierarchical-Localization/
-python -m pip install -e .
-```
-
-All dependencies are listed in `requirements.txt`. **Starting with `hloc-v1.3`, installing COLMAP is not required anymore.** This repository includes external local features as git submodules – don't forget to pull submodules with `git submodule update --init --recursive`.
-
-We also provide a Docker image:
-```bash
-docker build -t hloc:latest .
-docker run -it --rm -p 8888:8888 hloc:latest  # for GPU support, add `--runtime=nvidia`
-jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root
-```
-
-## General pipeline
-
-The toolbox is composed of scripts, which roughly perform the following steps:
-
-1. Extract SuperPoint local features for all database and query images
-2. Build a reference 3D SfM model
-   1. Find covisible database images, with retrieval or a prior SfM model
-   2. Match these database pairs with SuperGlue
-   3. Triangulate a new SfM model with COLMAP
-3. Find database images relevant to each query, using retrieval
-4. Match the query images with SuperGlue
-5. Run the localization
-6. Visualize and debug
-
-The localization can then be evaluated on [visuallocalization.net](https://www.visuallocalization.net/) for the supported datasets. When 3D Lidar scans are available, such as for the indoor dataset InLoc, step 2. can be skipped.
-
-Strcture of the toolbox:
-
-- `hloc/*.py` : top-level scripts
-- `hloc/extractors/` : interfaces for feature extractors
-- `hloc/matchers/` : interfaces for feature matchers
-- `hloc/pipelines/` : entire pipelines for multiple datasets
-
-`hloc` can be imported as an external package with `import hloc` or called from the command line with:
-```bash
-python -m hloc.name_of_script --arg1 --arg2
-```
-
-## Tasks
-
-We provide step-by-step guides to localize with Aachen, InLoc, and to generate reference poses for your own data using SfM. Just download the datasets and you're reading to go!
-
-### Aachen – outdoor localization
-
-Have a look at [`pipeline_Aachen.ipynb`](https://nbviewer.jupyter.org/github/cvg/Hierarchical-Localization/blob/master/pipeline_Aachen.ipynb) for a step-by-step guide on localizing with Aachen. Play with the visualization, try new local features or matcher, and have fun! Don't like notebooks? You can also run all scripts from the command line.
 
 <p align="center">
-  <a href="https://nbviewer.jupyter.org/github/cvg/Hierarchical-Localization/blob/master/pipeline_Aachen.ipynb"><img src="doc/loc_aachen.svg" width="70%"/></a>
+    <a href="https://github.com/cvg/Hierarchical-Localization">
+        <img src="https://img.shields.io/badge/Repo-hloc-red" /></a>
+    <a href="https://pytorch.org/">
+        <img src="https://img.shields.io/badge/Framework-PyTorch | Tensorflow-yellow.svg" /></a>
+    <a href="https://paperswithcode.com/task/visual-localization">
+        <img src="https://img.shields.io/badge/Task-Visual%20Localization-green.svg" /></a>
+    <a href="https://github.com/zafirshi/PanoVPR/blob/master/LICENSE">
+        <img src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
 </p>
 
-### InLoc – indoor localization
+This repo is a **Custom** **[Hloc](https://github.com/cvg/Hierarchical-Localization)** **framework** with
+[Zippypoint](https://github.com/menelaoskanakis/ZippyPoint), [SiLK](https://github.com/facebookresearch/silk) and
+[HF-net](https://github.com/ethz-asl/hfnet) interface.
+This repo is more of engineering integration and does not contain any framework-based innovation.
 
-The notebook [`pipeline_InLoc.ipynb`](https://nbviewer.jupyter.org/github/cvg/Hierarchical-Localization/blob/master/pipeline_InLoc.ipynb) shows the steps for localizing with InLoc. It's much simpler since a 3D SfM model is not needed.
+### Features
 
-<p align="center">
-  <a href="https://nbviewer.jupyter.org/github/cvg/Hierarchical-Localization/blob/master/pipeline_InLoc.ipynb"><img src="doc/loc_inloc.svg" width="70%"/></a>
-</p>
+The project features are as follows：
 
-### SfM reconstruction from scratch
+- [x] [Zippypoint](https://github.com/menelaoskanakis/ZippyPoint)  -> Fast like ORB but accurate like SuperPoint binary
+  descriptor <b>&middot;</b> ETH <b>&middot;</b> CVPRW IMC2020
+- [x] [SiLK](https://github.com/facebookresearch/silk)  -> Simple local self-supervised descriptor <b>&middot;</b>
+  MetaAI <b>&middot;</b> IMC2022
+- [x] [HF-net](https://github.com/ethz-asl/hfnet)   -> Proven visual localization methods
+- [x] [MixVPR](https://github.com/amaralibey/MixVPR)   -> SOTA method on Visual Place Recognition  <b>&middot;</b>
+  Retrieval  <b>&middot;</b> WACV2023
 
-We show in [`pipeline_SfM.ipynb`](https://nbviewer.jupyter.org/github/cvg/Hierarchical-Localization/blob/master/pipeline_SfM.ipynb) how to run 3D reconstruction for an unordered set of images. This generates reference poses, and a nice sparse 3D model suitable for localization with the same pipeline as Aachen.
+### Usages
 
-## Results
+We evaluate our integrated method into AachenV1.1 and Aachen Datasets, usage about these datasets can check
+out `hloc/pipelines/Aachen` for more details.
+Using the command and url in Aachen dataset readme file is faster and more efficient when transfer to AachenV1.1 by
+test.
 
-- Supported local feature extractors: [SuperPoint](https://arxiv.org/abs/1712.07629), [D2-Net](https://arxiv.org/abs/1905.03561), [SIFT](https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf), and [R2D2](https://arxiv.org/abs/1906.06195).
-- Supported feature matchers: [SuperGlue](https://arxiv.org/abs/1911.11763) and nearest neighbor search with ratio test, distance test, and/or mutual check.
-- Supported image retrieval: [NetVLAD](https://arxiv.org/abs/1511.07247), [AP-GeM/DIR](https://github.com/naver/deep-image-retrieval), [OpenIBL](https://github.com/yxgeee/OpenIBL), and [CosPlace](https://github.com/gmberton/CosPlace).
+All the third-party repo's code mentioned above should be put into `third_party` directory under root path,
+model-weights file should also put in there.
 
-Using NetVLAD for retrieval, we obtain the following best results:
+In addition, we also evaluate these methods into our private business datasets, _ChunXiRoad_.
+For quantitative evaluation like [hloc-benchmark](https://www.visuallocalization.net/benchmark/), we also
+add `evaluate.py` script. 
 
-| Methods                                                      | Aachen day         | Aachen night       | Retrieval      |
-| ------------------------------------------------------------ | ------------------ | ------------------ | -------------- |
-| [SuperPoint + SuperGlue](https://www.visuallocalization.net/details/10931/) | 89.6 / 95.4 / 98.8 | 86.7 / 93.9 / 100  | NetVLAD top 50 |
-| [SuperPoint + NN](https://www.visuallocalization.net/details/10866/) | 85.4 / 93.3 / 97.2 | 75.5 / 86.7 / 92.9 | NetVLAD top 30 |
-| D2Net (SS) + NN                                              | 84.6 / 91.4 / 97.1 | 83.7 / 90.8 / 100  | NetVLAD top 30 |
+### Results
 
-| Methods                                                      | InLoc DUC1         | InLoc DUC2         | Retrieval      |
-| ------------------------------------------------------------ | ------------------ | ------------------ | -------------- |
-| [SuperPoint + SuperGlue](https://www.visuallocalization.net/details/10936/) | 46.5 / 65.7 / 78.3 | 52.7 / 72.5 / 79.4 | NetVLAD top 40 |
-| [SuperPoint + SuperGlue (temporal)](https://www.visuallocalization.net/details/10937/) | 49.0 / 68.7 / 80.8 | 53.4 / 77.1 / 82.4 | NetVLAD top 40 |
-| [SuperPoint + NN](https://www.visuallocalization.net/details/10896/) | 39.9 / 55.6 / 67.2 | 37.4 / 57.3 / 70.2 | NetVLAD top 20 |
-| D2Net (SS) + NN                                              | 39.9 / 57.6 / 67.2 | 36.6 / 53.4 / 61.8 | NetVLAD top 20 |
+ZippyPoint Results on AachenV1.1 dataset with different inference configures:
 
-Check out [visuallocalization.net/benchmark](https://www.visuallocalization.net/benchmark) for more details and additional baselines.
+|          Experiment name          | Device | Input resize | Topk from retrieval | Matching ratio | Geometric verification |  Status   |        Day         |       Night        |
+|:---------------------------------:|:------:|:------------:|:-------------------:|:--------------:|:----------------------:|:---------:|:------------------:|:------------------:|
+| ssp_rz1024_m4096+nn-ssp+NetVLAD30 |  CPU   |     1024     |      netvald30      |       w        |           no           | Baseline  | 86.5 / 93.4 / 97.6 | 64.9 / 81.7 / 95.8 |
+|     CPU_rz640_topk30_woMR_SGV     |  CPU   |     640      |      netvlad30      |       wo       |           no           |           | 77.5 / 83.3 / 90.7 | 38.2 / 45.5 / 61.8 |
+|     CPU_rz640_topk30_wMR_SGV      |  CPU   |     640      |      netvlad30      |       w        |           no           | Mini Best | 80.0 / 87.6 / 94.1 | 44.5 / 57.1 / 75.4 |
+|     CPU_rz640_topk50_woMR_SGV     |  CPU   |     640      |      netvlad50      |       wo       |           no           |           | 73.2 / 79.1 / 87.1 | 28.3 / 35.1 / 52.9 |
+|     CPU_rz640_topk50_wMR_SGV      |  CPU   |     640      |      netvlad50      |       w        |           no           |           | 81.3 / 88.6 / 93.9 | 41.4 / 53.4 / 70.2 |
+|    CPU_rz1024_topk30_woMR_SGV     |  CPU   |     1024     |      netvlad30      |       wo       |           no           |           | 80.7 / 86.5 / 92.5 | 41.4 / 53.4 / 69.1 |
+|     CPU_rz1024_topk30_wMR_SGV     |  CPU   |     1024     |      netvlad30      |       w        |           no           |           | 84.7 / 91.5 / 95.8 | 56.5 / 71.7 / 84.3 |
+|    CPU_rz1024_topk50_woMR_SGV     |  CPU   |     1024     |      netvlad50      |       wo       |           no           |           | 76.8 / 82.4 / 88.6 | 37.2 / 43.5 / 56.5 |
+|     CPU_rz1024_topk50_wMR_SGV     |  CPU   |     1024     |      netvlad50      |       w        |           no           |           | 84.2 / 90.9 / 95.3 | 49.2 / 64.9 / 79.1 |
+|    CPU_rz1024_topk50_wMR.9_SGV    |  CPU   |     1024     |      netvlad50      |     w_0.9      |           no           | Our Best  | 84.3 / 91.7 / 96.8 | 58.6 / 75.4 / 88.0 |
+|    CPU_rz1024_topk30_wMR.9_SGV    |  CPU   |     1024     |      netvlad30      |     w_0.9      |           no           |           | 84.3 / 91.4 / 96.6 | 56.0 / 74.9 / 88.5 |
 
-## Supported datasets
+Our Best results on above table is quite similar to the reported results in original paper, besides by deconstructing
+the
+parameters in experiments, we find in our pipeline without **geometric verification** or not does't matter to final
+results,
+**retrieval TopK** and **matching ratio** compared more influence.
 
-We provide in [`hloc/pipelines/`](./hloc/pipelines) scripts to run the reconstruction and the localization on the following datasets: Aachen Day-Night (v1.0 and v1.1), InLoc, Extended CMU Seasons, RobotCar Seasons, 4Seasons, Cambridge Landmarks, and 7-Scenes. For example, after downloading the dataset [with the instructions given here](./hloc/pipelines/Aachen#installation), we can run the Aachen Day-Night pipeline with SuperPoint+SuperGlue using the command:
-```bash
-python -m hloc.pipelines.Aachen.pipeline [--outputs ./outputs/aachen]
-```
+Compared with the original paper, the accuracy reproduction is basically the same in the daytime scene,
+the accuracy of the night scene reproduction baseline is higher than paper,
+and the reproduction zippypoint value is slightly lower (which has a lot of space for fine-tune hyperparameters).
+Overall, the accuracy effect of the paper is basically reproduced.
 
-## BibTex Citation
+ZippyPoint Results on ChunXiRoad dataset with different inference configures:
 
-If you report any of the above results in a publication, or use any of the tools provided here, please consider citing both [Hierarchical Localization](https://arxiv.org/abs/1812.03506) and [SuperGlue](https://arxiv.org/abs/1911.11763) papers:
+|         Experiment name          |    Status     | Input resize | Topk from retrieval | Matching ratio | KeyPoint thd |      Metric      |
+|:--------------------------------:|:-------------:|:------------:|:-------------------:|:--------------:|:------------:|:----------------:|
+|         sp+sg_netvlad10          |  Unknown Cfg  |              |                     |                |              | 96.4/ 97.9/ 98.8 |
+|         hfnet+nn_hfnet10         |  Unknown Cfg  |     640      |      netvald10      |                |              | 64.0/ 76.8/ 86.9 |
+|         hfnet+nn_hfnet10         |    wo nms     |     640      |      netvald10      |                |              | 78.7/ 91.3/ 97.3 |
+|         hfnet+nn_hfnet10         |    w nms_3    |     640      |      netvald10      |                |              | 77.5/ 90.6/ 97.4 |
+|     CPU_rz640_topk30_wMR_SGV     | Mini Best Cfg |     640      |      netvald30      |     w_0.95     |    0.0001    | 83.6/ 93.6/ 97.9 |
+|     CPU_rz640_topk10_wMR_SGV     |               |     640      |      netvald10      |     w_0.95     |    0.0001    | 81.0/ 92.5/ 97.6 |
+| CPU_rz640_topk10_wMR_SGV_kThd.01 |               |     640      |      netvald10      |     w_0.95     |     0.01     | 81.3/ 92.5/ 97.5 |
 
-```
-@inproceedings{sarlin2019coarse,
-  title     = {From Coarse to Fine: Robust Hierarchical Localization at Large Scale},
-  author    = {Paul-Edouard Sarlin and
-               Cesar Cadena and
-               Roland Siegwart and
-               Marcin Dymczyk},
-  booktitle = {CVPR},
-  year      = {2019}
-}
+### Thanks
 
-@inproceedings{sarlin2020superglue,
-  title     = {{SuperGlue}: Learning Feature Matching with Graph Neural Networks},
-  author    = {Paul-Edouard Sarlin and
-               Daniel DeTone and
-               Tomasz Malisiewicz and
-               Andrew Rabinovich},
-  booktitle = {CVPR},
-  year      = {2020},
-}
-```
-
-## Going further
-
-### Debugging and Visualization
-
-<details>
-<summary>[Click to expand]</summary>
-
-Each localization run generates a pickle log file. For each query, it contains the selected database images, their matches, and information from the pose solver, such as RANSAC inliers. It can thus be parsed to gather statistics and analyze failure modes or difficult scenarios. 
-
-We also provide some visualization tools in [`hloc/visualization.py`](./hloc/visualization.py) to visualize some attributes of the 3D SfM model, such as visibility of the keypoints, their track length, or estimated sparse depth (like below).
-
-<p align="center">
-  <a href="./pipeline_Aachen.ipynb"><img src="doc/depth_aachen.svg" width="60%"/></a>
-</p>
-</details>
-
-### Using your own local features or matcher
-
-<details>
-<summary>[Click to expand]</summary>
-
-If your code is based on PyTorch: simply add a new interface in [`hloc/extractors/`](hloc/extractors/) or [`hloc/matchers/`](hloc/matchers/). It needs to inherit from `hloc.utils.base_model.BaseModel`, take as input a data dictionary, and output a prediction dictionary. Have a look at `hloc/extractors/superpoint.py` for an example. You can additionally define a standard configuration in [`hloc/extract_features.py`](hloc/extract_features.py) or [`hloc/match_features.py`](hloc/match_features.py) - it can then be called directly from the command line.
-
-If your code is based on TensorFlow: you will need to either modify `hloc/extract_features.py` and `hloc/match_features.py`, or export yourself the features and matches to HDF5 files, described below.
-
-In a feature file, each key corresponds to the relative path of an image w.r.t. the dataset root (e.g. `db/1.jpg` for Aachen), and has one dataset per prediction (e.g. `keypoints` and `descriptors`, with shape Nx2 and DxN).
-
-In a match file, each key corresponds to the string `path0.replace('/', '-')+'_'+path1.replace('/', '-')` and has a dataset `matches0` with shape N. It indicates, for each keypoint in the first image, the index of the matching keypoint in the second image, or `-1` if the keypoint is unmatched.
-</details>
-
-### Using your own image retrieval
-
-<details>
-<summary>[Click to expand]</summary>
-
-`hloc` also provides an interface for image retrieval via `hloc/extract_features.py`. As previously, simply add a new interface to [`hloc/extractors/`](hloc/extractors/). Alternatively, you will need to export the global descriptors into an HDF5 file, in which each key corresponds to the relative path of an image w.r.t. the dataset root, and contains a dataset `global_descriptor` with size D. You can then export the images pairs with [`hloc/pairs_from_retrieval.py`](hloc/pairs_from_retrieval.py).
-</details>
-
-## Versions
-
-<details>
-<summary>v1.3 (January 2022)</summary>
-
-- Demo notebook in Google Colab
-- Use the new pycolmap Reconstruction objects and pipeline API
-  - Do not require an installation of COLMAP anymore - pycolmap is enough
-  - Faster model reading and writing
-  - Fine-grained control over camera sharing via the `camera_mode` parameter
-  - Localization with unknown or inaccurate focal length
-- Modular localization API with control over all estimator parameters
-- 3D visualizations or camera frustums and points with plotly
-- Package-specific logging in the hloc namespace
-- Store the extracted features by default as fp16 instead of fp32
-- Optionally fix a long-standing bug in SuperPoint descriptor sampling
-- Add script to compute exhaustive pairs for reconstruction or localization
-- Require pycolmap>=0.1.0 and Python>=3.7
-</details>
-
-<details>
-<summary>v1.2 (December 2021)</summary>
-
-- Bug fixes and usability improvements.
-- Support PIL backend for image resizing.
-- Add `__version__` attribute to check against future releases.
-</details>
-
-<details>
-<summary>v1.1 (July 2021)</summary>
-
-- **Breaking**: improved structure of the SfM folders (triangulation and reconstruction), see [#76](https://github.com/cvg/Hierarchical-Localization/pull/76)
-- Support for image retrieval (NetVLAD, DIR) and more local features (SIFT, R2D2)
-- Support for more datasets: Aachen v1.1, Extended CMU Seasons, RobotCar Seasons, Cambridge Landmarks, 7-Scenes
-- Simplified pipeline and API
-- Spatial matcher
-</details>
-
-<details>
-<summary>v1.0 (July 2020)</summary>
-
-Initial public version.
-</details>
-
-## Contributions welcome!
-
-External contributions are very much welcome. Please follow the [PEP8 style guidelines](https://www.python.org/dev/peps/pep-0008/) using a linter like flake8. This is a non-exhaustive list of features that might be valuable additions:
-
-- [ ] support for GPS (extraction from EXIF + guided retrieval)
-- [ ] covisibility clustering for InLoc
-- [ ] visualization of the raw predictions (features and matches)
-- [ ] other local features or image retrieval
-
-Created and maintained by [Paul-Edouard Sarlin](https://psarlin.com/) with the help of many contributors.
+https://github.com/tsattler/visloc_pseudo_gt_limitations/blob/main/evaluate_estimates.py
