@@ -3,7 +3,7 @@ import os
 
 import torch
 from pathlib import Path
-from typing import Dict, List, Union, Optional, Tuple
+from typing import Dict, List, Union, Optional, Tuple, Iterable
 import h5py
 from types import SimpleNamespace
 import cv2
@@ -145,6 +145,21 @@ confs = {
             'keypoint_threshold': 0.0001,
             'max_keypoints': 4096,
             'max_resize': 1024,  # 1024, 768
+        },
+        'resize_up': True,
+        'preprocessing': {
+            'grayscale': False,
+        },
+    },
+    # hfnet_onnx config
+    'hfnet_onnx': {
+        'output': 'feats-hfnet-n4096-r640',
+        'model': {
+            'name': 'hfnet',
+            'keypoint_threshold': 0.005,    # code 0.015
+            'max_keypoints': 4096,          # code 2000
+            'input_shape': [640, 480],
+            'max_resize': None,  # use default input_shape W,H: 640, 480
         },
         'resize_up': True,
         'preprocessing': {
@@ -311,7 +326,15 @@ def main(conf: Dict,
     for idx, data in enumerate(tqdm(loader)):
         name = dataset.names[idx]
         pred = model({'image': data['image'].to(device, non_blocking=True)})
-        pred = {k: v[0].cpu().numpy() for k, v in pred.items()}
+        # Note: value in pred should nest in list or tuple
+        for k, v in pred.items():
+            assert isinstance(v, Tuple or List) and len(v) == 1, 'value in pred should nest in list or tuple'
+            if isinstance(v[0], torch.Tensor):
+                pred = {k: v[0].cpu().numpy()}
+            elif isinstance(v[0], np.ndarray):
+                pred = {k: v[0]}
+            else:
+                raise ValueError(f'Value returned from extractors should be ndarray or tensor, but get {type(v[0])}')
 
         pred['image_size'] = original_size = data['original_size'][0].numpy()  # WxH
         if 'keypoints' in pred:
