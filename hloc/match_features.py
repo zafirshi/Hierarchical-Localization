@@ -55,6 +55,15 @@ confs = {
             'sinkhorn_iterations': 5,
         },
     },
+    # add light-glue
+    'ltg': {
+        'output': 'matches-lightglue',
+        'model': {
+            'name': 'lightglue',
+            'width_confidence': 0.99,  # for point pruning
+            'depth_confidence': 0.95,  # for early stopping,
+        },
+    },
     'NN-superpoint': {
         'output': 'matches-NN-mutual-dist.7',
         'model': {
@@ -169,6 +178,8 @@ class FeaturePairsDataset(torch.utils.data.Dataset):
         data['name1'] = Path(name1).stem
         if self.image_dir:
             data['image_path1'] = str(Path(self.image_dir, name1))
+        # data structure contain
+        # descriptor-tensor, image-size, image-tensor, image-name and image path
         return data
 
     def __len__(self):

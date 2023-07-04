@@ -41,6 +41,19 @@ confs = {
             'resize_max': 1024,
         },
     },
+    # use other source completion
+    'superpoint_aachen_ltg': {
+        'output': 'feats-superpoint-n4096-r1024',
+        'model': {
+            'name': 'superpoint-ltg',
+            'nms_radius': 3,
+            'max_keypoints': 4096,
+        },
+        'preprocessing': {
+            'grayscale': True,
+            'resize_max': 1024,
+        },
+    },
     # Resize images to 1600px even if they are originally smaller.
     # Improves the keypoint localization if the images are of good quality.
     'superpoint_max': {
@@ -345,11 +358,11 @@ def main(conf: Dict,
         pred = model({'image': data['image'].to(device, non_blocking=True)})
         # Note: value in pred should nest in list or tuple
         for k, v in pred.items():
-            assert isinstance(v, Tuple or List) and len(v) == 1, 'value in pred should nest in list or tuple'
+            assert len(v) == 1, 'value in pred should nest in list or tuple, or batch-size set 1'
             if isinstance(v[0], torch.Tensor):
-                pred = {k: v[0].cpu().numpy()}
+                pred[k] = v[0].cpu().numpy()
             elif isinstance(v[0], np.ndarray):
-                pred = {k: v[0]}
+                pred[k] = v[0]
             else:
                 raise ValueError(f'Value returned from extractors should be ndarray or tensor, but get {type(v[0])}')
 
