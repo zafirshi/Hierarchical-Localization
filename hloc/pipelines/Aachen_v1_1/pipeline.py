@@ -4,8 +4,8 @@ from pprint import pformat
 import argparse
 import yaml
 
-from ... import extract_features, match_features, triangulation
-from ... import pairs_from_covisibility, pairs_from_retrieval, localize_sfm
+from hloc import extract_features, match_features, triangulation
+from hloc import pairs_from_covisibility, pairs_from_retrieval, localize_sfm
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=Path, default='datasets/aachen_v1.1',
@@ -39,8 +39,8 @@ loc_pairs = outputs / f'pairs-query-{args.retrieval_conf}{args.num_loc}.txt'  # 
 results = outputs / f'Aachen_hloc_{args.feature_conf}+{args.matcher_conf}_{args.retrieval_conf}{args.num_loc}.txt'
 
 # list the standard configurations available
-print(f'Configs for feature extractors:\n{pformat(extract_features.confs)}')
-print(f'Configs for feature matchers:\n{pformat(match_features.confs)}')
+# print(f'Configs for feature extractors:\n{pformat(extract_features.confs)}')
+# print(f'Configs for feature matchers:\n{pformat(match_features.confs)}')
 
 # pick one of the configurations for extraction and matching
 retrieval_conf = extract_features.confs[args.retrieval_conf]

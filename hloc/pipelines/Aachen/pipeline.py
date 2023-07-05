@@ -9,7 +9,7 @@ from hloc import pairs_from_covisibility, pairs_from_retrieval
 from hloc import colmap_from_nvm, triangulation, localize_sfm, visualization
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=Path, default='/media/zafirshi/software/Datasets/Aachen/',
+parser.add_argument('--dataset', type=Path, default='datasets/aachen/',
                     help='Path to the dataset, default: %(default)s')
 parser.add_argument('--outputs', type=Path, default='outputs/aachen_zpp_pipeline_debug',
                     help='Path to the output directory, default: %(default)s')

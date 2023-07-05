@@ -13,7 +13,7 @@ from hloc.utils.profile import AverageTimer
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=Path, default='/media/zafirshi/software/Code/myhloc/datasets/chunxiroad',
+parser.add_argument('--dataset', type=Path, default='datasets/chunxiroad',
                     help='Path to the dataset, default: %(default)s')
 parser.add_argument('--outputs', type=Path, default='outputs/chunxiroad-debug',
                     help='Path to the output directory, default: %(default)s')
@@ -56,7 +56,7 @@ cfgs = {
     'Extractor:' + args.feature_conf: feature_conf,
     'Matcher:' + args.matcher_conf: matcher_conf,
     'Retrieval:' + args.retrieval_conf: retrieval_conf
-}
+ }
 os.makedirs(outputs, exist_ok=True)
 with open(Path(outputs / 'config.yml'), 'w') as yaml_file:
     yaml.dump(cfgs, yaml_file, default_flow_style=False)
