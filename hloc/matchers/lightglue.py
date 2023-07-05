@@ -280,10 +280,10 @@ class LightGlue(BaseModel):
     }
 
     def _init(self, conf) -> None:
-        if conf.pretrained is not None:
-            assert (conf.pretrained in list(self.pretrained.keys()))
+        if conf['pretrained'] is not None:
+            assert (conf['pretrained'] in list(self.pretrained.keys()))
             self.conf['weights'], self.conf['input_dim'] = \
-                self.pretrained[conf.pretrained]
+                self.pretrained[conf['pretrained']]
         self.conf = conf = SimpleNamespace(**self.conf)
 
         if conf.input_dim != conf.descriptor_dim:
