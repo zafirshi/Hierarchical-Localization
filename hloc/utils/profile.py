@@ -1,5 +1,6 @@
 import time
 from collections import OrderedDict
+from pathlib import Path
 
 
 class AverageTimer:
@@ -41,4 +42,14 @@ class AverageTimer:
             print(flush=True)
         else:
             print(end='\r', flush=True)
+        self.reset()
+
+    def record(self, output_dir: Path = None):
+        assert output_dir, f"output_dir for saving timer.txt shouldn't be None"
+        with open(output_dir / 'timer.txt', 'w') as f:
+            for key in self.times:
+                val = self.times[key]
+                if self.will_print[key]:
+                    f.write(f"{key}: {val:.3f} sec \n")
+        print(f"Time-record file has saved in {output_dir / 'timer.txt'}")
         self.reset()
