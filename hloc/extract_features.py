@@ -135,6 +135,17 @@ confs = {
             'resize_max': 1600,
         },
     },
+    'disk_aachen_ltg_r1024': {
+        'output': 'feats-disk-n5000-r1024',
+        'model': {
+            'name': 'disk-ltg',
+            'max_keypoints': 5000,
+        },
+        'preprocessing': {
+            'grayscale': False,
+            'resize_max': 1024,
+        },
+    },
     # new added local descriptors
     'silk_aachen': {
         'output': 'feats-silk-n10000-r640',

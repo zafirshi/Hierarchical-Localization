@@ -56,10 +56,20 @@ confs = {
         },
     },
     # add light-glue
-    'ltg': {
+    'ltg-spp': {
         'output': 'matches-lightglue',
         'model': {
             'name': 'lightglue',
+            'pretrained': 'superpoint',
+            'width_confidence': 0.99,  # for point pruning
+            'depth_confidence': 0.95,  # for early stopping,
+        },
+    },
+    'ltg-disk': {
+        'output': 'matches-lightglue',
+        'model': {
+            'name': 'lightglue',
+            'pretrained': 'disk',
             'width_confidence': 0.99,  # for point pruning
             'depth_confidence': 0.95,  # for early stopping,
         },
