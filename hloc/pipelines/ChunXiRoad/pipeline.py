@@ -66,7 +66,6 @@ timer = AverageTimer(newline=True)
 
 features = extract_features.main(feature_conf, images, outputs)
 timer.update('extraction q&db local feature')
-timer.print()
 
 pairs_from_covisibility.main(
     sift_sfm, sfm_pairs, num_matched=args.num_covis)
@@ -105,4 +104,4 @@ localize_sfm.main(
     results,
     covisibility_clustering=False)  # not required with SuperPoint+SuperGlue
 timer.update('Location')
-timer.print()
+timer.record(output_dir=outputs)

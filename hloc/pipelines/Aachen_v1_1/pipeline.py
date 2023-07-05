@@ -7,6 +7,8 @@ import yaml
 from hloc import extract_features, match_features, triangulation
 from hloc import pairs_from_covisibility, pairs_from_retrieval, localize_sfm
 
+from hloc.utils.profile import AverageTimer
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=Path, default='datasets/aachen_v1.1',
                     help='Path to the dataset, default: %(default)s')
@@ -57,12 +59,18 @@ os.makedirs(outputs, exist_ok=True)
 with open(Path(outputs / 'config.yml'), 'w') as yaml_file:
     yaml.dump(cfgs, yaml_file, default_flow_style=False)
 
+# Init timer
+timer = AverageTimer(newline=True)
+
 features = extract_features.main(feature_conf, images, outputs)
+timer.update('extraction q&db local feature')
 
 pairs_from_covisibility.main(
     sift_sfm, sfm_pairs, num_matched=args.num_covis)
+timer.update('search db covis')
 sfm_matches = match_features.main(
     matcher_conf, sfm_pairs, feature_conf['output'], outputs, image_dir=images)
+timer.update('match db covis')
 
 triangulation.main(
     reference_sfm,
@@ -73,13 +81,17 @@ triangulation.main(
     sfm_matches,
     skip_geometric_verification=args.skip_geometric_verification,
 )
+timer.update('triangulation')
 
 global_descriptors = extract_features.main(retrieval_conf, images, outputs)
+timer.update('extraction q&db global feature')
 pairs_from_retrieval.main(
     global_descriptors, loc_pairs, args.num_loc,
     query_prefix='query', db_model=reference_sfm)
+timer.update('search q&db pair')
 loc_matches = match_features.main(
     matcher_conf, loc_pairs, feature_conf['output'], outputs, image_dir=images)
+timer.update('match q&db')
 
 localize_sfm.main(
     reference_sfm,
@@ -89,3 +101,5 @@ localize_sfm.main(
     loc_matches,
     results,
     covisibility_clustering=False)  # not required with SuperPoint+SuperGlue
+timer.update('Location')
+timer.record(output_dir=outputs)
