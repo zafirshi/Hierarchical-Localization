@@ -279,11 +279,11 @@ class LightGlue(BaseModel):
         'disk': ('disk_lightglue', 128)
     }
 
-    def _init(self, conf, pretrained='superpoint') -> None:
-        if pretrained is not None:
-            assert (pretrained in list(self.pretrained.keys()))
+    def _init(self, conf) -> None:
+        if conf.pretrained is not None:
+            assert (conf.pretrained in list(self.pretrained.keys()))
             self.conf['weights'], self.conf['input_dim'] = \
-                self.pretrained[pretrained]
+                self.pretrained[conf.pretrained]
         self.conf = conf = SimpleNamespace(**self.conf)
 
         if conf.input_dim != conf.descriptor_dim:
@@ -305,10 +305,10 @@ class LightGlue(BaseModel):
         self.token_confidence = nn.ModuleList([
             TokenConfidence(d) for _ in range(n - 1)])
 
-        if pretrained is not None:
+        if conf.pretrained is not None:
             fname = f'{conf.weights}_{self.version}.pth'.replace('.', '-')
             state_dict = torch.hub.load_state_dict_from_url(
-                self.url.format(self.version, pretrained), file_name=fname)
+                self.url.format(self.version, conf.pretrained), file_name=fname)
             self.load_state_dict(state_dict, strict=False)
         elif conf.weights is not None:
             path = Path(__file__).parent
